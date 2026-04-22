@@ -1,2 +1,1 @@
-# sa-youth-unemployment-model
-"Machine learning model predicting youth NEET status in South Africa using QLFS microdata | Python · scikit-learn · Streamlit
+A machine learning project analysing the socioeconomic determinants of youth NEET status in South Africa using QLFS microdata from Statistics South Africa. Built with Python, scikit-learn, and Streamlit.
