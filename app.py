@@ -89,13 +89,12 @@ if st.sidebar.button("Predict NEET Risk", type="primary"):
         col1, col2 = st.columns(2)
 
         with col1:
-            if probability < 0.35:
+            if probability < 0.45:
                 st.success(f"✅ LOW RISK — {prob_display}% NEET probability")
-            elif probability < 0.60:
+            elif probability < 0.62:
                 st.warning(f"⚠️ MEDIUM RISK — {prob_display}% NEET probability")
             else:
                 st.error(f"🚨 HIGH RISK — {prob_display}% NEET probability")
-
         with col2:
             fig = px.bar(
                 x=["Not NEET", "NEET"],
