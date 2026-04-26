@@ -15,6 +15,11 @@ Input a youth profile, get a NEET probability score, see how it compares to the 
 - Explains which factors matter and why — backed by actual survey patterns
 - National stats panel showing NEET rates by province, education level, and gender
 
+
+![Risk Predictor](PREDICTOR_PAGE.png)
+![National Statistics](NATIONAL_STATS_1.png)
+![National Statistics 2](NATIONAL_STATS_3.png)
+
 ---
 
 ## What I learned building this
