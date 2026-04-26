@@ -17,20 +17,14 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     model = joblib.load('models/xgb_neet_model.pkl')
-    
-    # Rebuild encoder from JSON instead of pkl
     with open('models/encoder_categories.json', 'r') as f:
         categories = json.load(f)
-    
     columns = list(categories.keys())
     cat_list = [categories[col] for col in columns]
-    
     ohe = OneHotEncoder(drop='first', sparse_output=False, categories=cat_list)
-    # Fit on dummy data to initialise
     dummy = pd.DataFrame({col: [cats[0]] for col, cats in categories.items()})
     encoder = ColumnTransformer([('ohe', ohe, columns)])
     encoder.fit(dummy)
-    
     return model, encoder
 
 model, encoder = load_model()
@@ -146,45 +140,52 @@ with tab1:
                 fig_gauge.update_layout(height=300, margin=dict(t=60, b=0, l=20, r=20))
                 st.plotly_chart(fig_gauge, use_container_width=True)
 
-    with col_factors:
-        st.markdown("**Key factors in this profile:**")
-        factors = []
+            with col_factors:
+                st.markdown("**Key factors in this profile:**")
+                factors = []
 
-        # Ever worked is by far the strongest predictor (88.8% vs 32.1%)
-        if ever_worked == "Yes":
-            factors.append(("↑ Work history", "Previously worked but currently not — strongest NEET predictor (88.8% rate)", "risk"))
-        elif ever_worked == "No":
-            factors.append(("↓ Never worked", "Often indicates still in education, especially for 15-19 age group", "protective"))
+                if ever_worked == "Yes":
+                    factors.append(("↑ Work history", "Previously worked but currently not — strongest NEET predictor (88.8% rate)", "risk"))
+                elif ever_worked == "No":
+                    factors.append(("↓ Never worked", "Often indicates still in education, especially for 15-19 age group", "protective"))
 
-        # Education — counterintuitive patterns from data
-        if education == "No schooling":
-            factors.append(("↑ Education", "No schooling — 79% NEET rate in survey data", "risk"))
-        elif education in ["Secondary completed", "Tertiary"]:
-            factors.append(("↑ Education", "Matric/tertiary completers still face 47-51% NEET rate — graduate unemployment is real", "risk"))
-        elif education in ["Secondary not completed", "Primary completed"]:
-            factors.append(("↓ Education", "Often still enrolled in school — lower observed NEET rate", "protective"))
+                if education == "No schooling":
+                    factors.append(("↑ Education", "No schooling — 79% NEET rate in survey data", "risk"))
+                elif education in ["Secondary completed", "Tertiary"]:
+                    factors.append(("↑ Education", "Matric/tertiary completers still face 47-51% NEET rate — graduate unemployment is real", "risk"))
+                elif education in ["Secondary not completed", "Primary completed"]:
+                    factors.append(("↓ Education", "Often still enrolled in school — lower observed NEET rate", "protective"))
 
-        # Age group
-        if age_group == "15-19":
-            factors.append(("↓ Age", "15-19 year olds more likely to still be in school", "protective"))
-        else:
-            factors.append(("↑ Age", "20-24 year olds face higher labour market pressure", "risk"))
+                if age_group == "15-19":
+                    factors.append(("↓ Age", "15-19 year olds more likely to still be in school", "protective"))
+                else:
+                    factors.append(("↑ Age", "20-24 year olds face higher labour market pressure", "risk"))
 
-        # Province — minimal real difference in data
-        factors.append(("→ Province", f"{province}: provincial differences are smaller than expected (28-42% range)", "neutral"))
+                factors.append(("→ Province", f"{province}: provincial differences are smaller than expected (28-42% range)", "neutral"))
 
-        # Grants
-        if grants == "Yes":
-            factors.append(("↑ Grant receipt", "CSG receipt correlates with socioeconomic vulnerability", "risk"))
+                if grants == "Yes":
+                    factors.append(("↑ Grant receipt", "CSG receipt correlates with socioeconomic vulnerability", "risk"))
 
-        for icon, text, ftype in factors:
-            if ftype == "risk":
-                color = "#e74c3c"
-            elif ftype == "protective":
-                color = "#2ecc71"
+                for icon, text, ftype in factors:
+                    if ftype == "risk":
+                        color = "#e74c3c"
+                    elif ftype == "protective":
+                        color = "#2ecc71"
+                    else:
+                        color = "#f39c12"
+                    st.markdown(f"<span style='color:{color}'><b>{icon}</b></span> {text}", unsafe_allow_html=True)
+
+            st.divider()
+            st.markdown("#### What does this mean?")
+            if diff > 15:
+                st.markdown(f"This profile is **{diff_label} above** the national average. Structural barriers are stacking against this individual. Targeted intervention would have high impact.")
+            elif diff > 0:
+                st.markdown(f"This profile is **{diff_label} above** the national average. Some risk factors present. Access to further education or work experience would meaningfully reduce risk.")
             else:
-                color = "#f39c12"
-        st.markdown(f"<span style='color:{color}'><b>{icon}</b></span> {text}", unsafe_allow_html=True)
+                st.markdown(f"This profile is **{diff_label} below** the national average. Protective factors are reducing risk relative to peers.")
+
+    else:
+        st.info("👈 Fill in the profile details on the left and click **Predict NEET Risk**")
 
 
 with tab2:
@@ -222,11 +223,11 @@ with tab2:
         edu_data = pd.DataFrame({
             'Education': ["No schooling", "Primary", "Secondary (incomplete)",
                           "Secondary (complete)", "Tertiary"],
-            'NEET Rate (%)': [58, 51, 44, 31, 14]
+            'NEET Rate (%)': [79, 26, 23, 51, 47]
         })
         fig_edu = px.bar(
             edu_data, x='Education', y='NEET Rate (%)',
-            title='NEET Rate by Education Level',
+            title='NEET Rate by Education Level (from training data)',
             color='NEET Rate (%)',
             color_continuous_scale=['#2ecc71', '#f39c12', '#e74c3c']
         )
