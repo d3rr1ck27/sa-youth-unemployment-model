@@ -146,51 +146,45 @@ with tab1:
                 fig_gauge.update_layout(height=300, margin=dict(t=60, b=0, l=20, r=20))
                 st.plotly_chart(fig_gauge, use_container_width=True)
 
-            with col_factors:
-                st.markdown("**Key factors in this profile:**")
-                factors = []
+    with col_factors:
+        st.markdown("**Key factors in this profile:**")
+        factors = []
 
-                if province in ["Limpopo", "Eastern Cape", "KwaZulu-Natal", "North West"]:
-                    factors.append(("↑ Province", f"{province} has above-average NEET rates", "risk"))
-                elif province in ["Gauteng", "Western Cape"]:
-                    factors.append(("↓ Province", f"{province} has below-average NEET rates", "protective"))
+        # Ever worked is by far the strongest predictor (88.8% vs 32.1%)
+        if ever_worked == "Yes":
+            factors.append(("↑ Work history", "Previously worked but currently not — strongest NEET predictor (88.8% rate)", "risk"))
+        elif ever_worked == "No":
+            factors.append(("↓ Never worked", "Often indicates still in education, especially for 15-19 age group", "protective"))
 
-                if gender == "Female":
-                    factors.append(("↑ Gender", "Females face higher NEET risk in SA", "risk"))
-                else:
-                    factors.append(("↓ Gender", "Males have slightly lower NEET rates", "protective"))
+        # Education — counterintuitive patterns from data
+        if education == "No schooling":
+            factors.append(("↑ Education", "No schooling — 79% NEET rate in survey data", "risk"))
+        elif education in ["Secondary completed", "Tertiary"]:
+            factors.append(("↑ Education", "Matric/tertiary completers still face 47-51% NEET rate — graduate unemployment is real", "risk"))
+        elif education in ["Secondary not completed", "Primary completed"]:
+            factors.append(("↓ Education", "Often still enrolled in school — lower observed NEET rate", "protective"))
 
-                if population_group == "African/Black":
-                    factors.append(("↑ Population group", "Structural inequality drives higher NEET rates", "risk"))
-                elif population_group == "White":
-                    factors.append(("↓ Population group", "Lower structural barriers to employment/education", "protective"))
+        # Age group
+        if age_group == "15-19":
+            factors.append(("↓ Age", "15-19 year olds more likely to still be in school", "protective"))
+        else:
+            factors.append(("↑ Age", "20-24 year olds face higher labour market pressure", "risk"))
 
-                if education in ["No schooling", "Less than primary completed", "Primary completed"]:
-                    factors.append(("↑ Education", "Low education level is a strong NEET predictor", "risk"))
-                elif education == "Tertiary":
-                    factors.append(("↓ Education", "Tertiary education significantly reduces NEET risk", "protective"))
+        # Province — minimal real difference in data
+        factors.append(("→ Province", f"{province}: provincial differences are smaller than expected (28-42% range)", "neutral"))
 
-                if grants == "Yes":
-                    factors.append(("↑ Grant dependency", "CSG receipt correlates with socioeconomic vulnerability", "risk"))
+        # Grants
+        if grants == "Yes":
+            factors.append(("↑ Grant receipt", "CSG receipt correlates with socioeconomic vulnerability", "risk"))
 
-                if marital_status in ["Living together like husband and wife", "Married"]:
-                    factors.append(("↑ Marital status", "Partnership often correlates with reduced participation", "risk"))
-
-                for icon, text, ftype in factors:
-                    color = "#e74c3c" if ftype == "risk" else "#2ecc71"
-                    st.markdown(f"<span style='color:{color}'><b>{icon}</b></span> {text}", unsafe_allow_html=True)
-
-            st.divider()
-            st.markdown("#### What does this mean?")
-            if diff > 15:
-                st.markdown(f"This profile is **{diff_label} above** the national average. Structural barriers are stacking against this individual. Targeted intervention would have high impact.")
-            elif diff > 0:
-                st.markdown(f"This profile is **{diff_label} above** the national average. Some risk factors present. Access to further education or work experience would meaningfully reduce risk.")
+        for icon, text, ftype in factors:
+            if ftype == "risk":
+                color = "#e74c3c"
+            elif ftype == "protective":
+                color = "#2ecc71"
             else:
-                st.markdown(f"This profile is **{diff_label} below** the national average. Protective factors are reducing risk relative to peers.")
-
-    else:
-        st.info("👈 Fill in the profile details on the left and click **Predict NEET Risk**")
+                color = "#f39c12"
+        st.markdown(f"<span style='color:{color}'><b>{icon}</b></span> {text}", unsafe_allow_html=True)
 
 
 with tab2:
